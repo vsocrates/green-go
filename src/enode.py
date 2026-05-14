@@ -5,6 +5,8 @@ from pydantic import TypeAdapter
 from dotenv import load_dotenv
 
 from datatypes.battery import BatteryChargeState
+from datatypes.charger import ChargerChargeState
+from datatypes.hvac import HVACState
 
 load_dotenv()
 
@@ -35,5 +37,31 @@ def get_battery_charge_states() -> list[BatteryChargeState]:
     )
 
 
+def get_charger_charge_states() -> list[ChargerChargeState]:
+    token = _get_access_token()
+    response = httpx.get(
+        f"{ENODE_BASE_URL}/chargers",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    response.raise_for_status()
+    return TypeAdapter(list[ChargerChargeState]).validate_python(
+        [c["chargeState"] for c in response.json()["data"]]
+    )
+
+
+def get_hvac_states() -> list[HVACState]:
+    token = _get_access_token()
+    response = httpx.get(
+        f"{ENODE_BASE_URL}/hvacs",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    response.raise_for_status()
+    return TypeAdapter(list[HVACState]).validate_python(
+        [{"thermostatState": h["thermostatState"], "temperatureState": h["temperatureState"]} for h in response.json()["data"]]
+    )
+
+
 if __name__ == "__main__":
     print(get_battery_charge_states())
+    print(get_charger_charge_states())
+    print(get_hvac_states())
