@@ -69,6 +69,14 @@ green-go uses the Enode API to communicate with smart devices. Refer to the [Eno
 
 For marginal emissions data integration, we use the [WattTime Python Client](https://github.com/WattTime/watttime-python-client).
 
+## Future Direction
+
+- **Real-time Pricing Integration**: Incorporate real-time pricing information from utilities to optimize device scheduling based on dynamic energy rates
+- **Enhanced DER Control**: Add additional Distributed Energy Resource (DER) control capabilities using tools such as [DER API](https://derapi.com/)
+- **Utility Demand Response Integration**: Link to utility demand response programs to participate in grid optimization initiatives and earn incentives
+- **User Notifications**: Implement smart notifications for instances where users do not have smart appliances, providing actionable recommendations
+- **Multi-Agent Optimization**: Enable connectivity between individual agents to neighborhood-level and regional agents to further optimize emissions and energy use across wider areas
+
 ## License
 
 MIT License - See LICENSE file for details
