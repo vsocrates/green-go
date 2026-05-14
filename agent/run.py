@@ -1,9 +1,12 @@
 """
-Entry point for running the energy management agent on dummy data.
+Entry point for running the energy management agent.
+
+Loads the ObservationBundle from a JSON file (default: data/observation_bundle_example.json).
 
 Usage:
     python -m agent.run
-    python -m agent.run --pretty   # pretty-print only (no JSON dump)
+    python -m agent.run --input data/observation_bundle_example.json
+    python -m agent.run --pretty   # human-readable output instead of JSON
 """
 
 from __future__ import annotations
@@ -12,14 +15,23 @@ import argparse
 import asyncio
 import json
 import sys
+from pathlib import Path
 
 from agent.agent import run_agent
-from agent.dummy_data import make_dummy_bundle
+from agent.models import ObservationBundle
+
+_DEFAULT_INPUT = Path(__file__).parent.parent / "data" / "observation_bundle_example.json"
 
 
-async def main(pretty: bool = False) -> None:
-    print("Building dummy ObservationBundle...", file=sys.stderr)
-    bundle = make_dummy_bundle()
+def load_bundle(path: Path) -> ObservationBundle:
+    with open(path) as f:
+        raw = json.load(f)
+    return ObservationBundle.model_validate(raw)
+
+
+async def main(input_path: Path, pretty: bool = False) -> None:
+    print(f"Loading ObservationBundle from {input_path}...", file=sys.stderr)
+    bundle = load_bundle(input_path)
 
     print(f"Invoking energy agent (now={bundle.now.isoformat()})...", file=sys.stderr)
     plan = await run_agent(bundle)
@@ -62,7 +74,13 @@ async def main(pretty: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run energy agent on dummy data")
+    parser = argparse.ArgumentParser(description="Run energy agent on an ObservationBundle JSON file")
+    parser.add_argument(
+        "--input", "-i",
+        type=Path,
+        default=_DEFAULT_INPUT,
+        help="Path to ObservationBundle JSON (default: data/observation_bundle_example.json)",
+    )
     parser.add_argument("--pretty", action="store_true", help="Human-readable output instead of JSON")
     args = parser.parse_args()
-    asyncio.run(main(pretty=args.pretty))
+    asyncio.run(main(input_path=args.input, pretty=args.pretty))

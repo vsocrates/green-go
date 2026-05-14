@@ -1,0 +1,422 @@
+{
+  "now": "2026-05-14T09:30:00Z",
+  "horizon_hours": 72,
+
+  "preferences": {
+    "optimization_slider": 0.2,
+    "ev_ready_by": [
+      {
+        "preference_id": "pref_ev_ready_thu",
+        "enode_vehicle_id": "veh_xyz789",
+        "target_soc_percent": 90.0,
+        "deadline": "2026-05-15T07:00:00Z"
+      }
+    ],
+    "device_unavailable_windows": [],
+    "thermostat_schedule": [
+      {
+        "start_time": "07:00",
+        "end_time": "22:00",
+        "target_temp_c": 22.0,
+        "mode": "COOL"
+      },
+      {
+        "start_time": "22:00",
+        "end_time": "07:00",
+        "target_temp_c": 24.0,
+        "mode": "COOL"
+      }
+    ],
+    "safety_floors": [
+      {
+        "preference_id": "pref_safety_ev_min_soc",
+        "device_id": "veh_xyz789",
+        "min_ev_soc_percent": 20.0
+      },
+      {
+        "preference_id": "pref_safety_bat_min_soc",
+        "device_id": "bat_001",
+        "min_battery_soc_percent": 10.0
+      },
+      {
+        "preference_id": "pref_safety_hvac",
+        "device_id": "hvac_001",
+        "min_temp_c": 18.0,
+        "max_temp_c": 28.0
+      }
+    ]
+  },
+
+  "calendar": [
+    {
+      "title": "Work from home",
+      "start": "2026-05-14T09:00:00Z",
+      "end": "2026-05-14T18:00:00Z",
+      "implies_occupied": true,
+      "note": "Home all day; comfort matters."
+    },
+    {
+      "title": "Evening out",
+      "start": "2026-05-14T19:00:00Z",
+      "end": "2026-05-14T23:00:00Z",
+      "implies_occupied": false,
+      "note": "Good window for grid export or battery cycling."
+    }
+  ],
+
+  "device_status": {
+    "vehicles": [
+      {
+        "vendor": "TESLA",
+        "model": "Model Y",
+        "enode_vehicle_id": "veh_xyz789",
+        "enode_user_id": "user_abc123",
+        "soc_percent": 62.0,
+        "range_km": 220.0,
+        "is_plugged_in": true,
+        "is_charging": true,
+        "location_label": "home_garage"
+      }
+    ],
+    "chargers": [
+      {
+        "vendor": "TESLA",
+        "model": "Wall Connector",
+        "enode_charger_id": "chg_001",
+        "enode_user_id": "user_abc123",
+        "enode_vehicle_id": "veh_xyz789",
+        "is_charging": true,
+        "current_power_kw": 7.2
+      }
+    ],
+    "batteries": [
+      {
+        "vendor": "TESLA",
+        "model": "Powerwall 3",
+        "enode_battery_id": "bat_001",
+        "enode_user_id": "user_abc123",
+        "soc_percent": 78.0,
+        "capacity_kwh": 13.5,
+        "current_power_kw": 0.0,
+        "current_operation_mode": "SELF_RELIANCE",
+        "supported_modes": ["SELF_RELIANCE", "TIME_OF_USE", "IMPORT_FOCUS", "EXPORT_FOCUS", "IDLE"]
+      },
+      {
+        "vendor": "ENPHASE",
+        "model": "IQ Battery 5P",
+        "enode_battery_id": "bat_002",
+        "enode_user_id": "user_abc123",
+        "soc_percent": 45.0,
+        "capacity_kwh": 5.0,
+        "current_power_kw": 0.0,
+        "current_operation_mode": "SELF_RELIANCE",
+        "supported_modes": ["SELF_RELIANCE", "TIME_OF_USE", "IMPORT_FOCUS", "EXPORT_FOCUS"]
+      }
+    ],
+    "hvacs": [
+      {
+        "vendor": "NEST",
+        "model": "Nest Learning Thermostat (3rd Generation)",
+        "enode_hvac_id": "hvac_001",
+        "enode_user_id": "user_abc123",
+        "current_temp_c": 23.5,
+        "target_temp_c": 22.0,
+        "mode": "COOL",
+        "is_active": true,
+        "has_active_hold": false
+      }
+    ],
+    "inverters": [
+      {
+        "vendor": "ENPHASE",
+        "model": "IQ8M Microinverter",
+        "enode_inverter_id": "inv_001",
+        "enode_user_id": "user_abc123",
+        "production_kw": 2.1,
+        "status": "normal"
+      },
+      {
+        "vendor": "ENPHASE",
+        "model": "IQ8M Microinverter",
+        "enode_inverter_id": "inv_002",
+        "enode_user_id": "user_abc123",
+        "production_kw": 2.1,
+        "status": "normal"
+      }
+    ],
+    "meters": [
+      {
+        "vendor": "ENPHASE",
+        "model": "Enphase Integrated Consumption Meter",
+        "enode_meter_id": "mtr_001",
+        "enode_user_id": "user_abc123",
+        "consumption_kw": 9.8,
+        "net_power_kw": 5.6
+      }
+    ]
+  },
+
+  "device_usage_24h": {
+    "entries": [
+      {
+        "device_id": "veh_xyz789",
+        "device_type": "vehicle",
+        "alias": "tesla_model_y",
+        "hourly_data": [
+          { "timestamp": "2026-05-13T09:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T10:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T11:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T12:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T13:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T14:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T15:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T16:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T17:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T18:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T19:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T20:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T21:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-13T22:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-13T23:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T00:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T01:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T02:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T03:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T04:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T05:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T06:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T07:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T08:30:00Z", "power_kw": 7.2 }
+        ]
+      },
+      {
+        "device_id": "chg_001",
+        "device_type": "charger",
+        "alias": "wall_connector",
+        "hourly_data": [
+          { "timestamp": "2026-05-13T09:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T10:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T11:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T12:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T13:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T14:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T15:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T16:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T17:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T18:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T19:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T20:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T21:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-13T22:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-13T23:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T00:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T01:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T02:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T03:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T04:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T05:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T06:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T07:30:00Z", "power_kw": 7.2 },
+          { "timestamp": "2026-05-14T08:30:00Z", "power_kw": 7.2 }
+        ]
+      },
+      {
+        "device_id": "bat_001",
+        "device_type": "battery",
+        "alias": "powerwall_3",
+        "hourly_data": [
+          { "timestamp": "2026-05-13T09:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-13T10:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-13T11:30:00Z", "power_kw": -1.2 },
+          { "timestamp": "2026-05-13T12:30:00Z", "power_kw": -1.5 },
+          { "timestamp": "2026-05-13T13:30:00Z", "power_kw": -1.3 },
+          { "timestamp": "2026-05-13T14:30:00Z", "power_kw": -0.8 },
+          { "timestamp": "2026-05-13T15:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T16:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-13T17:30:00Z", "power_kw": 1.2 },
+          { "timestamp": "2026-05-13T18:30:00Z", "power_kw": 1.8 },
+          { "timestamp": "2026-05-13T19:30:00Z", "power_kw": 1.5 },
+          { "timestamp": "2026-05-13T20:30:00Z", "power_kw": 0.8 },
+          { "timestamp": "2026-05-13T21:30:00Z", "power_kw": 0.3 },
+          { "timestamp": "2026-05-13T22:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T23:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T00:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T01:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T02:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T03:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T04:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T05:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T06:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-14T07:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-14T08:30:00Z", "power_kw": 0.5 }
+        ]
+      },
+      {
+        "device_id": "bat_002",
+        "device_type": "battery",
+        "alias": "iq_battery_5p",
+        "hourly_data": [
+          { "timestamp": "2026-05-13T09:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-13T10:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-13T11:30:00Z", "power_kw": -0.5 },
+          { "timestamp": "2026-05-13T12:30:00Z", "power_kw": -0.8 },
+          { "timestamp": "2026-05-13T13:30:00Z", "power_kw": -0.7 },
+          { "timestamp": "2026-05-13T14:30:00Z", "power_kw": -0.4 },
+          { "timestamp": "2026-05-13T15:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T16:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-13T17:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-13T18:30:00Z", "power_kw": 0.7 },
+          { "timestamp": "2026-05-13T19:30:00Z", "power_kw": 0.6 },
+          { "timestamp": "2026-05-13T20:30:00Z", "power_kw": 0.3 },
+          { "timestamp": "2026-05-13T21:30:00Z", "power_kw": 0.1 },
+          { "timestamp": "2026-05-13T22:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-13T23:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T00:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T01:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T02:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T03:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T04:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T05:30:00Z", "power_kw": 0.0 },
+          { "timestamp": "2026-05-14T06:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-14T07:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-14T08:30:00Z", "power_kw": 0.2 }
+        ]
+      },
+      {
+        "device_id": "hvac_001",
+        "device_type": "hvac",
+        "alias": "nest_living_room",
+        "hourly_data": [
+          { "timestamp": "2026-05-13T09:30:00Z", "power_kw": 1.8 },
+          { "timestamp": "2026-05-13T10:30:00Z", "power_kw": 1.8 },
+          { "timestamp": "2026-05-13T11:30:00Z", "power_kw": 2.1 },
+          { "timestamp": "2026-05-13T12:30:00Z", "power_kw": 2.4 },
+          { "timestamp": "2026-05-13T13:30:00Z", "power_kw": 2.4 },
+          { "timestamp": "2026-05-13T14:30:00Z", "power_kw": 2.6 },
+          { "timestamp": "2026-05-13T15:30:00Z", "power_kw": 2.5 },
+          { "timestamp": "2026-05-13T16:30:00Z", "power_kw": 2.3 },
+          { "timestamp": "2026-05-13T17:30:00Z", "power_kw": 2.0 },
+          { "timestamp": "2026-05-13T18:30:00Z", "power_kw": 1.8 },
+          { "timestamp": "2026-05-13T19:30:00Z", "power_kw": 1.5 },
+          { "timestamp": "2026-05-13T20:30:00Z", "power_kw": 1.2 },
+          { "timestamp": "2026-05-13T21:30:00Z", "power_kw": 1.0 },
+          { "timestamp": "2026-05-13T22:30:00Z", "power_kw": 0.8 },
+          { "timestamp": "2026-05-13T23:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-14T00:30:00Z", "power_kw": 0.3 },
+          { "timestamp": "2026-05-14T01:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-14T02:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-14T03:30:00Z", "power_kw": 0.2 },
+          { "timestamp": "2026-05-14T04:30:00Z", "power_kw": 0.3 },
+          { "timestamp": "2026-05-14T05:30:00Z", "power_kw": 0.5 },
+          { "timestamp": "2026-05-14T06:30:00Z", "power_kw": 0.8 },
+          { "timestamp": "2026-05-14T07:30:00Z", "power_kw": 1.2 },
+          { "timestamp": "2026-05-14T08:30:00Z", "power_kw": 1.8 }
+        ]
+      }
+    ]
+  },
+
+  "mer_forecast": {
+    "signal_type": "co2_moer",
+    "region": "CAISO_NORTH",
+    "points": [
+      { "timestamp": "2026-05-14T09:30:00Z", "mer_lbs_per_mwh": 420 },
+      { "timestamp": "2026-05-14T10:30:00Z", "mer_lbs_per_mwh": 430 },
+      { "timestamp": "2026-05-14T11:30:00Z", "mer_lbs_per_mwh": 440 },
+      { "timestamp": "2026-05-14T12:30:00Z", "mer_lbs_per_mwh": 460 },
+      { "timestamp": "2026-05-14T13:30:00Z", "mer_lbs_per_mwh": 510 },
+      { "timestamp": "2026-05-14T14:30:00Z", "mer_lbs_per_mwh": 500 },
+      { "timestamp": "2026-05-14T15:30:00Z", "mer_lbs_per_mwh": 480 },
+      { "timestamp": "2026-05-14T16:30:00Z", "mer_lbs_per_mwh": 460 },
+      { "timestamp": "2026-05-14T17:30:00Z", "mer_lbs_per_mwh": 440 },
+      { "timestamp": "2026-05-14T18:30:00Z", "mer_lbs_per_mwh": 420 },
+      { "timestamp": "2026-05-14T19:30:00Z", "mer_lbs_per_mwh": 400 },
+      { "timestamp": "2026-05-14T20:30:00Z", "mer_lbs_per_mwh": 380 },
+      { "timestamp": "2026-05-14T21:30:00Z", "mer_lbs_per_mwh": 360 },
+      { "timestamp": "2026-05-14T22:30:00Z", "mer_lbs_per_mwh": 370 },
+      { "timestamp": "2026-05-14T23:30:00Z", "mer_lbs_per_mwh": 390 },
+      { "timestamp": "2026-05-15T00:30:00Z", "mer_lbs_per_mwh": 340 },
+      { "timestamp": "2026-05-15T01:30:00Z", "mer_lbs_per_mwh": 310 },
+      { "timestamp": "2026-05-15T02:30:00Z", "mer_lbs_per_mwh": 290 },
+      { "timestamp": "2026-05-15T03:30:00Z", "mer_lbs_per_mwh": 280 },
+      { "timestamp": "2026-05-15T04:30:00Z", "mer_lbs_per_mwh": 275 },
+      { "timestamp": "2026-05-15T05:30:00Z", "mer_lbs_per_mwh": 278 },
+      { "timestamp": "2026-05-15T06:30:00Z", "mer_lbs_per_mwh": 285 },
+      { "timestamp": "2026-05-15T07:30:00Z", "mer_lbs_per_mwh": 290 },
+      { "timestamp": "2026-05-15T08:30:00Z", "mer_lbs_per_mwh": 300 },
+      { "timestamp": "2026-05-15T09:30:00Z", "mer_lbs_per_mwh": 310 },
+      { "timestamp": "2026-05-15T10:30:00Z", "mer_lbs_per_mwh": 320 },
+      { "timestamp": "2026-05-15T11:30:00Z", "mer_lbs_per_mwh": 330 },
+      { "timestamp": "2026-05-15T12:30:00Z", "mer_lbs_per_mwh": 340 },
+      { "timestamp": "2026-05-15T13:30:00Z", "mer_lbs_per_mwh": 355 },
+      { "timestamp": "2026-05-15T14:30:00Z", "mer_lbs_per_mwh": 365 },
+      { "timestamp": "2026-05-15T15:30:00Z", "mer_lbs_per_mwh": 375 },
+      { "timestamp": "2026-05-15T16:30:00Z", "mer_lbs_per_mwh": 390 },
+      { "timestamp": "2026-05-15T17:30:00Z", "mer_lbs_per_mwh": 400 },
+      { "timestamp": "2026-05-15T18:30:00Z", "mer_lbs_per_mwh": 410 },
+      { "timestamp": "2026-05-15T19:30:00Z", "mer_lbs_per_mwh": 420 },
+      { "timestamp": "2026-05-15T20:30:00Z", "mer_lbs_per_mwh": 415 },
+      { "timestamp": "2026-05-15T21:30:00Z", "mer_lbs_per_mwh": 405 },
+      { "timestamp": "2026-05-15T22:30:00Z", "mer_lbs_per_mwh": 395 },
+      { "timestamp": "2026-05-15T23:30:00Z", "mer_lbs_per_mwh": 380 },
+      { "timestamp": "2026-05-16T00:30:00Z", "mer_lbs_per_mwh": 365 },
+      { "timestamp": "2026-05-16T01:30:00Z", "mer_lbs_per_mwh": 350 },
+      { "timestamp": "2026-05-16T02:30:00Z", "mer_lbs_per_mwh": 340 },
+      { "timestamp": "2026-05-16T03:30:00Z", "mer_lbs_per_mwh": 330 },
+      { "timestamp": "2026-05-16T04:30:00Z", "mer_lbs_per_mwh": 325 },
+      { "timestamp": "2026-05-16T05:30:00Z", "mer_lbs_per_mwh": 330 },
+      { "timestamp": "2026-05-16T06:30:00Z", "mer_lbs_per_mwh": 340 },
+      { "timestamp": "2026-05-16T07:30:00Z", "mer_lbs_per_mwh": 355 },
+      { "timestamp": "2026-05-16T08:30:00Z", "mer_lbs_per_mwh": 365 }
+    ]
+  },
+
+  "weather": [
+    { "timestamp": "2026-05-14T09:30:00Z", "temp_c": 21.0, "cloud_cover_pct": 10.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T10:30:00Z", "temp_c": 22.5, "cloud_cover_pct": 10.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T11:30:00Z", "temp_c": 24.0, "cloud_cover_pct": 5.0,  "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T12:30:00Z", "temp_c": 25.5, "cloud_cover_pct": 5.0,  "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T13:30:00Z", "temp_c": 26.5, "cloud_cover_pct": 5.0,  "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T14:30:00Z", "temp_c": 27.0, "cloud_cover_pct": 5.0,  "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T15:30:00Z", "temp_c": 26.8, "cloud_cover_pct": 20.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T16:30:00Z", "temp_c": 26.0, "cloud_cover_pct": 20.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T17:30:00Z", "temp_c": 25.0, "cloud_cover_pct": 20.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T18:30:00Z", "temp_c": 23.5, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T19:30:00Z", "temp_c": 22.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T20:30:00Z", "temp_c": 21.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T21:30:00Z", "temp_c": 20.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T22:30:00Z", "temp_c": 19.5, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-14T23:30:00Z", "temp_c": 19.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T00:30:00Z", "temp_c": 18.5, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T01:30:00Z", "temp_c": 18.2, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T02:30:00Z", "temp_c": 18.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T03:30:00Z", "temp_c": 18.0, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T04:30:00Z", "temp_c": 18.1, "cloud_cover_pct": 75.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T05:30:00Z", "temp_c": 18.5, "cloud_cover_pct": 60.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T06:30:00Z", "temp_c": 19.0, "cloud_cover_pct": 60.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T07:30:00Z", "temp_c": 19.8, "cloud_cover_pct": 60.0, "precip_mm": 0.0 },
+    { "timestamp": "2026-05-15T08:30:00Z", "temp_c": 20.5, "cloud_cover_pct": 60.0, "precip_mm": 0.0 }
+  ],
+
+  "pricing": {
+    "current_price_per_kwh": 0.42,
+    "currency": "USD",
+    "export_tariff_per_kwh": 0.10,
+    "tou_schedule": [
+      {
+        "label": "peak",
+        "start_time": "07:00",
+        "end_time": "21:00",
+        "price_per_kwh": 0.42,
+        "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      },
+      {
+        "label": "off_peak",
+        "start_time": "21:00",
+        "end_time": "07:00",
+        "price_per_kwh": 0.18,
+        "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+      }
+    ]
+  }
+}
