@@ -4,9 +4,14 @@ import httpx
 from pydantic import TypeAdapter
 from dotenv import load_dotenv
 
-from datatypes.battery import BatteryChargeState
-from datatypes.charger import ChargerChargeState
-from datatypes.hvac import HVACState
+try:
+    from src.datatypes.battery import BatteryChargeState
+    from src.datatypes.charger import ChargerChargeState
+    from src.datatypes.hvac import HVACState
+except ImportError:
+    from datatypes.battery import BatteryChargeState
+    from datatypes.charger import ChargerChargeState
+    from datatypes.hvac import HVACState
 
 load_dotenv()
 
