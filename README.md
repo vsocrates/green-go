@@ -18,13 +18,12 @@ green-go is an intelligent energy management system that automatically optimizes
 
 ## Architecture
 
-![green-go System Architecture](architecture.png)
-
 The system monitors connected smart devices and applies machine learning algorithms to optimize energy consumption based on usage patterns, time of day, and energy pricing.
 
 ## User Interface
 
-![green-go Dashboard](dashboard.png)
+![green-go Dashboard1](ui_wireframe1.png)
+![green-go Dashboard2](ui_wireframe2.png)
 
 The intuitive dashboard provides real-time insights into your energy consumption, device status, and optimization recommendations.
 
