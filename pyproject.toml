@@ -16,11 +16,3 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
 ]
-
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["agent*", "helpers*"]
