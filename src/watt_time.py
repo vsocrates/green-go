@@ -6,7 +6,7 @@ from pydantic import TypeAdapter
 from dotenv import load_dotenv
 
 from watttime import WattTimeForecast
-from src.types.moer_forecast import MoerForecast
+from datatypes.moer_forecast import MoerForecast
 
 load_dotenv()
 
