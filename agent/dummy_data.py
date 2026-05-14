@@ -35,7 +35,9 @@ from agent.models import (
     ObservationBundle,
     PricingInfo,
     SafetyFloor,
+    TemperatureState,
     ThermostatScheduleEntry,
+    ThermostatState,
     ToUEntry,
     UserPreferences,
     VehicleState,
@@ -78,7 +80,7 @@ def _make_mer_forecast() -> MERForecast:
     points = []
     for i, mer in enumerate(_MER_PROFILE):
         ts = NOW + timedelta(hours=i)
-        points.append(MERPoint(timestamp=ts, mer_lbs_per_mwh=float(mer)))
+        points.append(MERPoint(point_time=ts, value=float(mer)))
     return MERForecast(signal_type="co2_moer", region="CAISO_NORTH", points=points)
 
 
@@ -166,9 +168,14 @@ def _make_device_status() -> DeviceStatus:
                 model="Wall Connector",
                 enode_charger_id="chg_001",
                 enode_user_id="user_abc123",
-                enode_vehicle_id="veh_xyz789",
+                is_plugged_in=True,
                 is_charging=True,
-                current_power_kw=7.2,
+                charge_rate=7.2,
+                max_current=32.0,
+                power_delivery_state="CHARGING",
+                plugged_in_vehicle_id="veh_xyz789",
+                charge_rate_limit=None,
+                last_updated=NOW,
             )
         ],
         batteries=[
@@ -177,9 +184,12 @@ def _make_device_status() -> DeviceStatus:
                 model="Powerwall 3",
                 enode_battery_id="bat_001",
                 enode_user_id="user_abc123",
-                soc_percent=78.0,
-                capacity_kwh=13.5,
-                current_power_kw=0.0,
+                status="IDLE",
+                battery_capacity=13.5,
+                battery_level=78.0,
+                charge_rate=0.0,
+                discharge_limit=None,
+                last_updated=NOW,
                 current_operation_mode="SELF_RELIANCE",
                 supported_modes=["SELF_RELIANCE", "TIME_OF_USE", "IMPORT_FOCUS", "EXPORT_FOCUS", "IDLE"],
             ),
@@ -188,9 +198,12 @@ def _make_device_status() -> DeviceStatus:
                 model="IQ Battery 5P",
                 enode_battery_id="bat_002",
                 enode_user_id="user_abc123",
-                soc_percent=45.0,
-                capacity_kwh=5.0,
-                current_power_kw=0.0,
+                status="IDLE",
+                battery_capacity=5.0,
+                battery_level=45.0,
+                charge_rate=0.0,
+                discharge_limit=None,
+                last_updated=NOW,
                 current_operation_mode="SELF_RELIANCE",
                 supported_modes=["SELF_RELIANCE", "TIME_OF_USE", "IMPORT_FOCUS", "EXPORT_FOCUS"],
             ),
@@ -201,11 +214,18 @@ def _make_device_status() -> DeviceStatus:
                 model="Nest Learning Thermostat (3rd Generation)",
                 enode_hvac_id="hvac_001",
                 enode_user_id="user_abc123",
-                current_temp_c=23.5,
-                target_temp_c=22.0,
-                mode="COOL",
-                is_active=True,
-                has_active_hold=False,
+                thermostat_state=ThermostatState(
+                    mode="COOL",
+                    heat_setpoint=None,
+                    cool_setpoint=22.0,
+                    hold_type=None,
+                    last_updated=NOW,
+                ),
+                temperature_state=TemperatureState(
+                    current_temperature=23.5,
+                    is_active=True,
+                    last_updated=NOW,
+                ),
             )
         ],
         inverters=[

@@ -259,9 +259,14 @@ class ChargerState(BaseModel):
     model: str
     enode_charger_id: str
     enode_user_id: str
-    enode_vehicle_id: str | None = None
-    is_charging: bool
-    current_power_kw: float | None = None
+    is_plugged_in: bool | None = None
+    is_charging: bool | None = None
+    charge_rate: float | None = None
+    max_current: float | None = None
+    power_delivery_state: str | None = None
+    plugged_in_vehicle_id: str | None = None
+    charge_rate_limit: float | None = None
+    last_updated: datetime | None = None
 
 
 class BatteryState(BaseModel):
@@ -269,13 +274,31 @@ class BatteryState(BaseModel):
     model: str
     enode_battery_id: str
     enode_user_id: str
-    soc_percent: float
-    capacity_kwh: float
-    current_power_kw: float | None = None
+    status: str | None = None
+    battery_capacity: float | None = None
+    battery_level: float | None = None
+    charge_rate: float | None = None
+    discharge_limit: float | None = None
+    last_updated: datetime | None = None
     current_operation_mode: BatteryMode | None = None
     supported_modes: list[BatteryMode] = Field(
+        default_factory=list,
         description="Exact list of modes supported by this device. Agent must not emit a mode outside this list.",
     )
+
+
+class ThermostatState(BaseModel):
+    mode: str | None = None
+    heat_setpoint: float | None = None
+    cool_setpoint: float | None = None
+    hold_type: str | None = None
+    last_updated: datetime | None = None
+
+
+class TemperatureState(BaseModel):
+    current_temperature: float | None = None
+    is_active: bool | None = None
+    last_updated: datetime | None = None
 
 
 class HVACState(BaseModel):
@@ -283,11 +306,8 @@ class HVACState(BaseModel):
     model: str
     enode_hvac_id: str
     enode_user_id: str
-    current_temp_c: float
-    target_temp_c: float | None = None
-    mode: Literal["HEAT", "COOL", "HEATCOOL", "OFF", "MANUAL_ECO"]
-    is_active: bool
-    has_active_hold: bool = False
+    thermostat_state: ThermostatState | None = None
+    temperature_state: TemperatureState | None = None
 
 
 class InverterState(BaseModel):
@@ -344,8 +364,8 @@ class DeviceUsage24h(BaseModel):
 # ---------------------------------------------------------------------------
 
 class MERPoint(BaseModel):
-    timestamp: datetime
-    mer_lbs_per_mwh: float
+    point_time: datetime
+    value: float
 
 
 class MERForecast(BaseModel):
