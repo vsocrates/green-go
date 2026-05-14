@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Green Go · Energy Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #f0eee9; font-family: 'Geist', system-ui, sans-serif; height: 100%; }
+  #root { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+  .phone-shell {
+    width: 375px;
+    height: 812px;
+    border-radius: 54px;
+    background: #1a1a1a;
+    padding: 14px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08) inset,
+      0 2px 4px rgba(0,0,0,0.5),
+      0 20px 60px rgba(0,0,0,0.35),
+      0 40px 100px rgba(0,0,0,0.2);
+    position: relative;
+    flex: none;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 44px;
+    overflow: hidden;
+    background: #FAF8F3;
+    position: relative;
+  }
+  .phone-notch {
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #1a1a1a;
+    border-radius: 0 0 24px 24px;
+    z-index: 100;
+  }
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+
+  @keyframes screenFade {
+    from { opacity: 0; transform: translateY(3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .screen-enter { animation: screenFade 0.18s ease-out; }
+
+  @media (max-width: 700px) {
+    .phone-shell { width: 340px; height: 720px; border-radius: 44px; }
+    .phone-screen { border-radius: 34px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+<script type="text/babel">
+
+// ─── Design tokens ──────────────────────────────────────────────────────────
+const G = {
+  appBg:       '#FAF8F3',
+  surface:     '#FFFFFF',
+  surfaceSoft: '#F4F1E9',
+  surfaceWarm: '#EFEBE0',
+  surfaceDark: '#19170F',
+  ink1:  '#1B1813',
+  ink2:  '#4E4A41',
+  ink3:  '#8A857A',
+  ink4:  '#B5B0A4',
+  divider:    '#EAE6DB',
+  dividerSoft:'#F0EDE3',
+  brandDeep:  '#0F4D2A',
+  brandAction:'#1E8F4A',
+  brandTint:  '#E4EFE2',
+  brandGlow:  '#F0F7EE',
+  amberDeep:  '#8C4B1F',
+  amberAction:'#C56B2D',
+  amberTint:  '#F5E4CE',
+  amberGlow:  '#FBF2E2',
+  strokeSoft: 'rgba(27,24,19,0.06)',
+  strokeMed:  'rgba(27,24,19,0.10)',
+  shadow:     '0 1px 2px rgba(27,24,19,0.04), 0 4px 12px rgba(27,24,19,0.04)',
+  shadowHi:   '0 1px 2px rgba(27,24,19,0.05), 0 12px 32px rgba(27,24,19,0.08)',
+  sans:  "'Geist', -apple-system, system-ui, sans-serif",
+  serif: "'Instrument Serif', Georgia, serif",
+  mono:  "'Geist Mono', ui-monospace, monospace",
+};
+
+// ─── Primitives ──────────────────────────────────────────────────────────────
+function Box({ children, style, tone = 'paper', padded = true, raised = true }) {
+  const map = {
+    paper: { bg: G.surface,     st: G.strokeSoft },
+    soft:  { bg: G.surfaceSoft, st: G.strokeSoft },
+    green: { bg: G.brandGlow,   st: 'rgba(15,77,42,0.12)' },
+    amber: { bg: G.amberGlow,   st: 'rgba(140,75,31,0.15)' },
+    dark:  { bg: G.surfaceDark, st: 'rgba(0,0,0,0.4)' },
+  }[tone] || { bg: G.surface, st: G.strokeSoft };
+  return (
+    <div style={{
+      background: map.bg,
+      border: `1px solid ${map.st}`,
+      borderRadius: 16,
+      padding: padded ? 16 : 0,
+      boxShadow: raised ? G.shadow : 'none',
+      ...style,
+    }}>{children}</div>
+  );
+}
+
+function Label({ children, style, tone = 'mute' }) {
+  const c = tone === 'mute' ? G.ink3 : tone === 'brand' ? G.brandDeep : tone === 'amber' ? G.amberDeep : G.ink2;
+  return (
+    <div style={{ fontFamily: G.sans, fontWeight: 600, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: c, lineHeight: 1, ...style }}>{children}</div>
+  );
+}
+
+function Mono({ children, style }) {
+  return <span style={{ fontFamily: G.mono, fontSize: 12, color: G.ink2, letterSpacing: '-0.01em', ...style }}>{children}</span>;
+}
+
+function Dot({ color = 'green', pulse = false, size = 8 }) {
+  const c = color === 'green' ? G.brandAction : color === 'amber' ? G.amberAction : color === 'ink' ? G.ink3 : color;
+  return (
+    <span style={{
+      display: 'inline-block', width: size, height: size, borderRadius: '50%',
+      background: c, flex: 'none',
+      boxShadow: pulse ? `0 0 0 4px ${color === 'green' ? 'rgba(30,143,74,0.18)' : 'rgba(197,107,45,0.18)'}` : 'none',
+    }} />
+  );
+}
+
+function Pill({ children, tone = 'ink', style }) {
+  const map = {
+    ink:   { bg: G.surfaceSoft, fg: G.ink2 },
+    green: { bg: G.brandTint,   fg: G.brandDeep },
+    amber: { bg: G.amberTint,   fg: G.amberDeep },
+    solid: { bg: G.ink1,        fg: '#fff' },
+    brand: { bg: G.brandDeep,   fg: '#fff' },
+  }[tone];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '5px 10px', borderRadius: 999,
+      background: map.bg, color: map.fg,
+      fontFamily: G.sans, fontWeight: 600, fontSize: 11,
+      letterSpacing: '0.02em', ...style,
+    }}>{children}</span>
+  );
+}
+
+function Display({ children, size = 56, style }) {
+  return (
+    <div style={{ fontFamily: G.sans, fontWeight: 600, fontSize: size, letterSpacing: '-0.045em', lineHeight: 0.98, color: G.ink1, ...style }}>{children}</div>
+  );
+}
+
+function InfoDot({ size = 14 }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: size, height: size, borderRadius: '50%',
+      border: `1px solid ${G.ink3}`, color: G.ink3, flex: 'none',
+      fontFamily: G.sans, fontSize: size * 0.62, fontWeight: 600, lineHeight: 1,
+    }}>i</span>
+  );
+}
+
+// ─── Icons ───────────────────────────────────────────────────────────────────
+function GIcon({ kind, size = 22, color = G.ink1 }) {
+  const h = size, w = size, s = size;
+  const sk = { stroke: color, strokeWidth: 1.5, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' };
+  if (kind === 'sun') return (
+    <svg width={w} height={h} viewBox={`0 0 ${s} ${s}`}>
+      <circle cx={s/2} cy={s/2} r={s*0.20} fill={color} />
+      {[0,1,2,3,4,5,6,7].map(i => {
+        const a = (i/8)*Math.PI*2, r1=s*0.30, r2=s*0.44;
+        return <line key={i} x1={s/2+Math.cos(a)*r1} y1={s/2+Math.sin(a)*r1} x2={s/2+Math.cos(a)*r2} y2={s/2+Math.sin(a)*r2} stroke={color} strokeWidth="1.6" strokeLinecap="round" />;
+      })}
+    </svg>
+  );
+  if (kind === 'batt') return (
+    <svg width={w} height={h} viewBox={`0 0 ${s} ${s}`}>
+      <rect x={s*0.12} y={s*0.30} width={s*0.66} height={s*0.40} rx={3} {...sk} />
+      <rect x={s*0.80} y={s*0.40} width={s*0.08} height={s*0.20} rx={1} fill={color} stroke="none" />
+      <rect x={s*0.18} y={s*0.36} width={s*0.50} height={s*0.28} rx={1.5} fill={color} stroke="none" />
+    </svg>
+  );
+  if (kind === 'temp') return (
+    <svg width={w} height={h} viewBox={`0 0 ${s} ${s}`}>
+      <path d={`M ${s/2-1.4} ${s*0.15} a 2 2 0 0 1 2.8 0 L ${s/2+1.4} ${s*0.65}`} {...sk} />
+      <path d={`M ${s/2-1.4} ${s*0.15} L ${s/2-1.4} ${s*0.65}`} {...sk} />
+      <circle cx={s/2} cy={s*0.78} r={s*0.13} fill={color} stroke={color} strokeWidth="1.4" />
+      <line x1={s/2} y1={s*0.78} x2={s/2} y2={s*0.40} stroke={color} strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+  if (kind === 'ev') return (
+    <svg width={w} height={h} viewBox={`0 0 ${s} ${s}`}>
+      <rect x={s*0.10} y={s*0.42} width={s*0.55} height={s*0.26} rx={3} {...sk} />
+      <path d={`M ${s*0.16} ${s*0.42} L ${s*0.24} ${s*0.28} L ${s*0.52} ${s*0.28} L ${s*0.60} ${s*0.42}`} {...sk} />
+      <circle cx={s*0.24} cy={s*0.70} r={s*0.07} fill={color} />
+      <circle cx={s*0.52} cy={s*0.70} r={s*0.07} fill={color} />
+      <path d={`M ${s*0.70} ${s*0.50} L ${s*0.80} ${s*0.50} L ${s*0.74} ${s*0.42} M ${s*0.80} ${s*0.50} L ${s*0.74} ${s*0.58}`} {...sk} />
+    </svg>
+  );
+  return null;
+}
+
+// ─── Scenario data ────────────────────────────────────────────────────────────
+const SCENARIOS = {
+  'morning': {
+    time: '8:12 AM', saved: '$0.40', savedDelta: '–4%', co2: '0.1 kg',
+    baseline: '$1.10', baselineNote: 'Without Green Go: $1.10',
+    summary: '1 active · 3 resting',
+    lastAction: { what: 'Finished charging your car at 80%.', device: 'ev', time: '4 min ago', undoUntil: 'Until 9 AM' },
+    headline: 'Quiet morning.',
+    sub: 'I charged your car overnight when power was cheapest. Solar is just waking up.',
+    devices: {
+      solar:      { state: 'Just warming up',      detail: 'Making a little power',   tone: 'ink',   dot: 'ink'   },
+      battery:    { state: 'Filling up',            detail: '62% full',                tone: 'green', dot: 'green' },
+      thermostat: { state: 'Holding 68°',           detail: 'Comfortable',             tone: 'ink',   dot: 'ink'   },
+      ev:         { state: 'Idle · ready to drive', detail: '80% charged',             tone: 'ink',   dot: 'ink'   },
+    },
+    rateText: 'Cheap electricity all morning. Nothing to watch.',
+    rateTone: 'mute',
+  },
+  'pre-peak': {
+    time: '3:45 PM', saved: '$4.82', savedDelta: '–58%', co2: '0.8 kg',
+    baseline: '$11.40', baselineNote: 'Without Green Go: $11.40',
+    summary: '3 doing their job · 1 waiting until 9pm',
+    lastAction: { what: 'Started cooling your house early, before expensive rates.', device: 'thermostat', time: '14 min ago', undoUntil: 'Until 4 PM' },
+    headline: 'Peak pricing begins at 4pm, preparation complete.',
+    sub: 'Home cooled before peak. Battery fully charged. EV session moved to 9pm.',
+    devices: {
+      solar:      { state: 'Making free power',  detail: 'Earning about $0.40/hr', tone: 'green', dot: 'green' },
+      battery:    { state: 'Charged up · ready', detail: '90% full',               tone: 'green', dot: 'green' },
+      thermostat: { state: 'Cooling the house',  detail: 'Heading to 68°',         tone: 'green', dot: 'green' },
+      ev:         { state: 'Waiting until 9pm',  detail: 'Saves about $1.80',      tone: 'amber', dot: 'amber' },
+    },
+    rateText: 'Higher rates in effect from 4pm today.',
+    rateTone: 'amber',
+  },
+  'peak': {
+    time: '5:30 PM', saved: '$6.15', savedDelta: '–58%', co2: '1.0 kg',
+    baseline: '$14.80', baselineNote: 'Without Green Go: $14.80',
+    summary: '3 powering your home · 1 waiting until 9pm',
+    lastAction: { what: 'Switched the house onto stored battery power.', device: 'battery', time: '32 min ago', undoUntil: 'Until 9 PM' },
+    headline: 'Running on your battery and the sun.',
+    sub: 'Your house is using almost nothing from the grid right now.',
+    devices: {
+      solar:      { state: 'Helping out',         detail: 'Still making power',      tone: 'green', dot: 'green' },
+      battery:    { state: 'Powering your house', detail: '64% left',                tone: 'green', dot: 'green' },
+      thermostat: { state: 'Coasting',            detail: 'Holding 72° on its own',  tone: 'ink',   dot: 'ink'   },
+      ev:         { state: 'Still waiting',       detail: 'Starts charging at 9pm',  tone: 'amber', dot: 'amber' },
+    },
+    rateText: 'Higher rates until 9pm. Running on stored power.',
+    rateTone: 'amber',
+  },
+  'post-peak': {
+    time: '9:30 PM', saved: '$7.20', savedDelta: '–56%', co2: '1.2 kg',
+    baseline: '$16.20', baselineNote: 'Without Green Go: $16.20',
+    summary: '1 charging your car · others resting',
+    lastAction: { what: 'Started charging your car now that rates dropped.', device: 'ev', time: '8 min ago', undoUntil: 'Until midnight' },
+    headline: 'Cheap rates are back. Catching up.',
+    sub: 'Your car is charging now. The battery will refill from solar tomorrow morning.',
+    devices: {
+      solar:      { state: 'Sun is down',     detail: 'Done for the day',        tone: 'ink',   dot: 'ink'   },
+      battery:    { state: 'Resting',         detail: '21% · used most of it',   tone: 'ink',   dot: 'ink'   },
+      thermostat: { state: 'Easing off',      detail: 'Letting it drift to 74°', tone: 'ink',   dot: 'ink'   },
+      ev:         { state: 'Charging now',    detail: '64% · ready by midnight', tone: 'green', dot: 'green' },
+    },
+    rateText: 'Cheap rates again. Catching up overnight.',
+    rateTone: 'mute',
+  },
+};
+
+const DEVICE_META = {
+  solar:      { name: 'Solar panels', icon: 'sun'  },
+  battery:    { name: 'Home battery', icon: 'batt' },
+  thermostat: { name: 'Thermostat',   icon: 'temp' },
+  ev:         { name: 'EV charger',   icon: 'ev'   },
+};
+
+const REASONS = {
+  'pre-peak': {
+    solar: 'Selling extra power back to the grid for credit.',
+    battery: 'Filled it up so the house can run on stored power tonight.',
+    thermostat: 'Cooling now so the AC barely runs after 4pm.',
+    ev: 'Charging at 9pm saves about $1.80 vs starting now.',
+  },
+  morning: {
+    solar: 'Just past sunrise. Output is climbing slowly.',
+    battery: 'Refilling from the sun before 4pm.',
+    thermostat: 'Comfortable. Nothing to do yet.',
+    ev: 'Hit 80% overnight when power was cheapest.',
+  },
+  peak: {
+    solar: 'A little less sun, but still helping.',
+    battery: 'Powering your house instead of buying from the grid.',
+    thermostat: 'Coasting on the cool air from earlier.',
+    ev: 'Worth the wait — power costs 3× more right now.',
+  },
+  'post-peak': {
+    solar: 'Sun is down for the day.',
+    battery: 'Earned a rest. Refills from solar tomorrow.',
+    thermostat: 'Letting it drift up overnight to save energy.',
+    ev: "Cheap rates again — charging until it's full.",
+  },
+};
+
+const YESTERDAY = {
+  saved: '$6.42', co2: '1.4 kg', baseline: '$15.30',
+  highlights: [
+    { device: 'solar',      what: 'Extra solar power sold back to the grid mid-day.',        delta: '+$1.10' },
+    { device: 'battery',    what: 'House ran on stored power through the expensive hours.',   delta: '+$2.40' },
+    { device: 'thermostat', what: 'Pre-cooled before peak, then drifted to 74° overnight.',  delta: '+$1.30' },
+    { device: 'ev',         what: 'Car charged after 9 PM at the cheapest overnight rate.',  delta: '+$1.62' },
+  ],
+};
+
+const HISTORY = [
+  { day: 'Today', date: 'Tue · Apr 14', total: '$4.82',
+    items: [
+      { time: '3:42 PM', device: 'ev',         action: "Pushed your car's charging session to 9 PM tonight.",   impact: '+$1.80', save: true },
+      { time: '3:30 PM', device: 'thermostat', action: 'Started cooling the house early before expensive rates.', impact: '+$1.20', save: true },
+      { time: '3:15 PM', device: 'battery',    action: 'Finished filling the battery — ready for tonight.',      impact: '+$0.80', save: true },
+      { time: '12:00 PM', device: 'solar',     action: 'Started selling extra solar power back to the grid.',    impact: '+$0.62', save: true },
+      { time: '7:15 AM',  device: 'ev',        action: 'Finished overnight charging at 80% — cheapest rate.',    impact: '+$0.40', save: true },
+    ],
+  },
+  { day: 'Yesterday', date: 'Mon · Apr 13', total: '$6.42',
+    items: [
+      { time: '9:02 PM', device: 'ev',         action: 'Started overnight charging now that rates are cheap.',   impact: '+$1.62', save: true },
+      { time: '9:00 PM', device: 'thermostat', action: 'Letting the house drift up to 74° overnight.',           impact: 'small win', save: false },
+      { time: '5:15 PM', device: 'battery',    action: 'Powered the house through expensive hours.',             impact: '+$2.40', save: true },
+      { time: '3:30 PM', device: 'thermostat', action: 'Cooled the house early before expensive rates.',         impact: '+$1.30', save: true },
+      { time: '11:08 AM', device: 'solar',     action: 'Sold extra solar power back to the grid mid-day.',       impact: '+$1.10', save: true },
+    ],
+  },
+  { day: 'Sun · Apr 12', date: '', total: '$4.85',
+    items: [
+      { time: '8:14 PM',  device: 'ev',      action: 'Skipped a 4 PM charge to wait for cheaper rates.',            impact: '+$2.10', save: true },
+      { time: '4:00 PM',  device: 'battery', action: 'Switched the house onto stored power.',                       impact: '+$1.95', save: true },
+      { time: '10:30 AM', device: 'solar',   action: 'Stored mid-day surplus to use later when rates are higher.',  impact: '+$0.80', save: true },
+    ],
+  },
+];
+
+// ─── Shared layout pieces ─────────────────────────────────────────────────────
+function StatusBar() {
+  return (
+    <div style={{ padding: '14px 24px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: G.appBg }}>
+      <span style={{ fontFamily: G.sans, fontWeight: 600, fontSize: 15, color: G.ink1 }}>9:41</span>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <svg width="17" height="11" viewBox="0 0 17 11">
+          <rect x="0" y="7" width="3" height="4" rx="0.6" fill={G.ink1}/>
+          <rect x="4.5" y="4.5" width="3" height="6.5" rx="0.6" fill={G.ink1}/>
+          <rect x="9" y="2" width="3" height="9" rx="0.6" fill={G.ink1}/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.6" fill={G.ink1}/>
+        </svg>
+        <svg width="25" height="12" viewBox="0 0 25 12">
+          <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke={G.ink1} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="18" height="8" rx="2" fill={G.ink1}/>
+          <path d="M23 4v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill={G.ink1} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function Header({ subtitle = 'Your agent is managing your home' }) {
+  return (
+    <div style={{ padding: '4px 20px 10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+        <div style={{ width: 34, height: 34, borderRadius: '50%', flex: 'none', background: G.brandGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${G.brandTint}` }}>
+          <div style={{ width: 14, height: 14, borderRadius: '50%', background: G.brandDeep, boxShadow: `0 0 0 3px ${G.brandTint}` }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: G.serif, fontSize: 22, fontWeight: 400, color: G.ink1, letterSpacing: '-0.01em', lineHeight: 1.0 }}>Green Go</div>
+          <div style={{ fontFamily: G.sans, fontSize: 11.5, color: G.ink3, lineHeight: 1.3, marginTop: 3, fontWeight: 500 }}>{subtitle}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RateStrip({ scenario }) {
+  const s = SCENARIOS[scenario];
+  const isAmber = s.rateTone === 'amber';
+  return (
+    <div style={{ padding: '10px 14px', borderRadius: 12, background: isAmber ? G.amberGlow : G.surfaceSoft, border: `1px solid ${isAmber ? 'rgba(140,75,31,0.14)' : G.strokeSoft}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 22, height: 22, borderRadius: '50%', flex: 'none', background: isAmber ? G.amberTint : G.surfaceWarm, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <circle cx="6" cy="6" r="4.5" fill="none" stroke={isAmber ? G.amberDeep : G.ink2} strokeWidth="1.3" />
+          <path d="M 6 3.5 L 6 6 L 7.8 7" fill="none" stroke={isAmber ? G.amberDeep : G.ink2} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <div style={{ fontFamily: G.sans, fontSize: 13, fontWeight: 500, color: isAmber ? G.amberDeep : G.ink2, flex: 1, lineHeight: 1.35 }}>{s.rateText}</div>
+    </div>
+  );
+}
+
+function TabBar({ active = 'home', onTab }) {
+  const tabs = [
+    { id: 'home',    label: 'Home' },
+    { id: 'chat',    label: 'Chat' },
+    { id: 'history', label: 'History' },
+    { id: 'profile', label: 'You' },
+  ];
+  const icon = (name, on) => {
+    const c = on ? G.ink1 : G.ink4, sw = on ? 1.7 : 1.5;
+    if (name === 'home') return (
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <path d="M 3 10 L 11 3 L 19 10 L 19 19 L 13 19 L 13 13 L 9 13 L 9 19 L 3 19 Z" fill={on ? G.brandTint : 'none'} stroke={c} strokeWidth={sw} strokeLinejoin="round" />
+      </svg>
+    );
+    if (name === 'chat') return (
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <path d="M 4 5 L 18 5 Q 19.5 5 19.5 6.5 L 19.5 14 Q 19.5 15.5 18 15.5 L 8 15.5 L 4 19 L 4 6.5 Q 4 5 5.5 5 Z" fill="none" stroke={c} strokeWidth={sw} strokeLinejoin="round" />
+      </svg>
+    );
+    if (name === 'history') return (
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <circle cx="11" cy="11" r="7.5" fill="none" stroke={c} strokeWidth={sw} />
+        <path d="M 11 6.5 L 11 11 L 14.5 13" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" />
+      </svg>
+    );
+    if (name === 'profile') return (
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <circle cx="11" cy="8" r="3.5" fill="none" stroke={c} strokeWidth={sw} />
+        <path d="M 4 19 Q 4 13.5 11 13.5 Q 18 13.5 18 19" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" />
+      </svg>
+    );
+  };
+  return (
+    <div style={{ borderTop: `1px solid ${G.divider}`, background: G.surface, padding: '10px 18px 22px', display: 'flex', justifyContent: 'space-around' }}>
+      {tabs.map(t => {
+        const on = t.id === active;
+        return (
+          <div key={t.id} onClick={() => onTab && onTab(t.id)}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', userSelect: 'none', padding: '4px 8px', borderRadius: 8 }}>
+            {icon(t.id, on)}
+            <div style={{ fontFamily: G.sans, fontSize: 10, color: on ? G.ink1 : G.ink4, fontWeight: on ? 600 : 500, letterSpacing: 0.1 }}>{t.label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChatBar({ onTap, focused }) {
+  return (
+    <div onClick={onTap} style={{ padding: '10px 14px 12px', borderTop: `1px solid ${G.divider}`, background: G.surface, display: 'flex', alignItems: 'center', gap: 8, cursor: onTap ? 'pointer' : 'default', minWidth: 0 }}>
+      <div style={{ width: 34, height: 34, borderRadius: '50%', background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 7 2 L 7 12 M 2 7 L 12 7" stroke={G.ink2} strokeWidth="1.7" strokeLinecap="round" /></svg>
+      </div>
+      <div style={{ flex: 1, minWidth: 0, minHeight: 36, padding: '8px 12px', border: `1px solid ${focused ? G.brandAction : G.divider}`, boxShadow: focused ? `0 0 0 3px ${G.brandTint}` : 'none', borderRadius: 999, background: G.surface, display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: G.brandAction, flex: 'none' }} />
+        <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, color: G.ink3, fontFamily: G.sans, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Ask anything about your home energy…</div>
+        <svg width="14" height="14" viewBox="0 0 14 14" style={{ flex: 'none', opacity: 0.4 }}>
+          <rect x="5" y="1.5" width="4" height="7" rx="2" fill={G.ink3} />
+          <path d="M 2.5 6.5 a 4.5 4.5 0 0 0 9 0" fill="none" stroke={G.ink3} strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="7" y1="11" x2="7" y2="13" stroke={G.ink3} strokeWidth="1.2" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─── Home screen ──────────────────────────────────────────────────────────────
+function HeroCard({ scenario }) {
+  const s = SCENARIOS[scenario];
+  return (
+    <Box style={{ padding: '18px 18px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Label>SAVED TODAY</Label>
+        <Mono style={{ fontSize: 11, color: G.ink3 }}>{s.time}</Mono>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 8 }}>
+        <Display size={64}>{s.saved}</Display>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 9px', borderRadius: 999, background: G.brandTint, color: G.brandDeep, fontFamily: G.sans, fontSize: 11.5, fontWeight: 600 }}>
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M 5 1 L 5 9 M 5 9 L 2 6 M 5 9 L 8 6" fill="none" stroke={G.brandDeep} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {s.savedDelta}
+        </div>
+      </div>
+      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${G.divider}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: G.ink4 }} />
+          <span style={{ fontSize: 13, color: G.ink2, fontWeight: 500 }}>{s.baselineNote}</span>
+          <InfoDot size={13} />
+        </div>
+        <Mono style={{ fontSize: 11, color: G.ink3 }}>{s.co2} CO₂ avoided</Mono>
+      </div>
+    </Box>
+  );
+}
+
+function LastActionCard({ scenario }) {
+  const s = SCENARIOS[scenario];
+  const act = s.lastAction;
+  const meta = DEVICE_META[act.device];
+  return (
+    <div style={{ marginTop: 12, borderRadius: 16, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden' }}>
+      <div style={{ padding: '12px 16px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Dot color="green" pulse size={7} />
+          <Label tone="brand">LAST ACTION</Label>
+        </div>
+        <Mono style={{ fontSize: 10.5, color: G.ink3 }}>{act.time}</Mono>
+      </div>
+      <div style={{ padding: '6px 16px 4px', fontFamily: G.serif, fontSize: 22, lineHeight: 1.2, color: G.ink1, letterSpacing: '-0.01em', fontWeight: 400 }}>{s.headline}</div>
+      <div style={{ padding: '4px 16px 14px', fontSize: 13, lineHeight: 1.5, color: G.ink2 }}>{s.sub}</div>
+      <div style={{ margin: '0 12px 12px', padding: '11px 12px', borderRadius: 12, background: G.brandGlow, display: 'flex', alignItems: 'center', gap: 11 }}>
+        <div style={{ width: 30, height: 30, borderRadius: 8, flex: 'none', background: G.surface, border: `1px solid ${G.strokeSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <GIcon kind={meta.icon} size={18} color={G.brandDeep} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: G.ink1, lineHeight: 1.35 }}>{act.what}</div>
+          <div style={{ fontSize: 11, color: G.brandDeep, fontWeight: 500, marginTop: 2 }}>{meta.name} · Undo available {act.undoUntil.toLowerCase()}</div>
+        </div>
+      </div>
+      <div style={{ padding: '0 12px 12px', display: 'flex', gap: 8 }}>
+        <div style={{ flex: 1, padding: '10px 12px', textAlign: 'center', border: `1px solid ${G.divider}`, borderRadius: 10, background: G.surface, fontFamily: G.sans, fontSize: 13, fontWeight: 600, color: G.ink1 }}>Undo</div>
+        <div style={{ flex: 1.4, padding: '10px 12px', textAlign: 'center', borderRadius: 10, background: G.ink1, fontFamily: G.sans, fontSize: 13, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          See details
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M 2 5 L 8 5 M 8 5 L 5 2 M 8 5 L 5 8" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RulesCard() {
+  const rules = [
+    { rule: 'Car charged to 80% by 6 AM, always.',       status: 'On track for 5:42 AM'   },
+    { rule: 'House never above 75° in the living room.',  status: 'Holding at 68° now'      },
+    { rule: 'Battery never below 20% (for outages).',     status: 'At 90% — well above'     },
+  ];
+  return (
+    <div style={{ marginTop: 10, borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden' }}>
+      {rules.map((r, i) => (
+        <div key={i} style={{ padding: '12px 14px', borderBottom: `1px solid ${G.dividerSoft}`, display: 'flex', alignItems: 'flex-start', gap: 11 }}>
+          <div style={{ width: 22, height: 22, borderRadius: '50%', flex: 'none', background: G.brandTint, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+            <svg width="11" height="11" viewBox="0 0 12 12"><path d="M 2 6.5 L 4.8 9 L 10 3" fill="none" stroke={G.brandDeep} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13.5, color: G.ink1, lineHeight: 1.4, fontWeight: 500 }}>{r.rule}</div>
+            <div style={{ fontSize: 11.5, color: G.ink3, marginTop: 2 }}>{r.status}</div>
+          </div>
+        </div>
+      ))}
+      <div style={{ padding: '11px 14px', background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: G.ink2, fontSize: 13, fontWeight: 600 }}>
+        <svg width="11" height="11" viewBox="0 0 12 12"><path d="M 6 1.5 L 6 10.5 M 1.5 6 L 10.5 6" stroke={G.ink2} strokeWidth="1.7" strokeLinecap="round" /></svg>
+        Add a rule
+      </div>
+    </div>
+  );
+}
+
+function DeviceList({ scenario }) {
+  const s = SCENARIOS[scenario];
+  const reasons = REASONS[scenario] || REASONS['pre-peak'];
+  return (
+    <div style={{ marginTop: 10, borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden' }}>
+      {Object.entries(s.devices).map(([k, d], i, arr) => {
+        const meta = DEVICE_META[k];
+        const isLast = i === arr.length - 1;
+        const tintBg = d.tone === 'green' ? G.brandTint : d.tone === 'amber' ? G.amberTint : G.surfaceWarm;
+        const tintInk = d.tone === 'green' ? G.brandDeep : d.tone === 'amber' ? G.amberDeep : G.ink2;
+        return (
+          <div key={k} style={{ padding: '13px 14px', borderBottom: isLast ? 'none' : `1px solid ${G.dividerSoft}`, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, flex: 'none', background: tintBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <GIcon kind={meta.icon} size={22} color={tintInk} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: G.ink1 }}>{meta.name}</div>
+                <Mono style={{ fontSize: 11, color: G.ink3 }}>{d.detail}</Mono>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, fontSize: 12.5, color: tintInk, fontWeight: 600 }}>
+                <Dot color={d.dot} size={5} />{d.state}
+              </div>
+              <div style={{ fontSize: 12.5, color: G.ink3, marginTop: 4, lineHeight: 1.45 }}>{reasons[k]}</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 5 2 L 10 7 L 5 12" fill="none" stroke={G.ink4} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function HomeScreen({ scenario, onChatTap, onTab }) {
+  const s = SCENARIOS[scenario];
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: G.appBg, fontFamily: G.sans, color: G.ink1 }}>
+      <StatusBar />
+      <Header />
+      <div style={{ padding: '0 20px 10px' }}>
+        <div style={{ fontSize: 13, color: G.ink3, fontWeight: 500, lineHeight: 1.4 }}>
+          Yesterday saved <strong style={{ color: G.brandAction }}>$6.42</strong> — that's 58% off your normal bill.
+        </div>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', padding: '4px 18px 18px' }}>
+        <HeroCard scenario={scenario} />
+        <LastActionCard scenario={scenario} />
+        <div style={{ marginTop: 12 }}><RateStrip scenario={scenario} /></div>
+        <div style={{ marginTop: 22, padding: '0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Label>YOUR RULES</Label>
+          <Mono style={{ fontSize: 11, color: G.ink3 }}>3 set · all on track</Mono>
+        </div>
+        <RulesCard />
+        <div style={{ marginTop: 22, padding: '0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Label>YOUR DEVICES</Label>
+          <Mono style={{ fontSize: 11, color: G.ink3 }}>{s.summary}</Mono>
+        </div>
+        <DeviceList scenario={scenario} />
+        <div style={{ marginTop: 14, textAlign: 'center', fontSize: 12, color: G.ink3, fontWeight: 500 }}>Tap a device to see what I did today.</div>
+      </div>
+      <ChatBar onTap={onChatTap} />
+      <TabBar active="home" onTab={onTab} />
+    </div>
+  );
+}
+
+// ─── Chat screen ──────────────────────────────────────────────────────────────
+function ChatHeader({ onBack }) {
+  return (
+    <div style={{ padding: '8px 16px 14px', background: G.surface, borderBottom: `1px solid ${G.divider}`, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', cursor: 'pointer' }}>
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 9 2 L 4 7 L 9 12" fill="none" stroke={G.ink1} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9 }}>
+        <div style={{ width: 30, height: 30, borderRadius: '50%', flex: 'none', background: G.brandGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${G.brandTint}` }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: G.brandDeep, boxShadow: `0 0 0 2.5px ${G.brandTint}` }} />
+        </div>
+        <div>
+          <div style={{ fontFamily: G.serif, fontSize: 17, fontWeight: 400, color: G.ink1, lineHeight: 1.1 }}>Green Go</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+            <Dot color="green" size={5} />
+            <div style={{ fontSize: 11, color: G.brandDeep, fontWeight: 600 }}>Active · saved $4.82 today</div>
+          </div>
+        </div>
+      </div>
+      <div onClick={onBack} style={{ width: 36, height: 36, borderRadius: '50%', background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', cursor: 'pointer' }}>
+        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 2 5 L 7 10 L 12 5" fill="none" stroke={G.ink1} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </div>
+    </div>
+  );
+}
+
+function UserBubble({ children }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+      <div style={{ maxWidth: '78%', padding: '10px 14px', background: G.brandDeep, color: '#fff', borderRadius: 20, borderBottomRightRadius: 6, fontSize: 14.5, lineHeight: 1.4, fontWeight: 500 }}>{children}</div>
+    </div>
+  );
+}
+
+function AgentBubble({ children, hideAvatar }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8 }}>
+      <div style={{ width: 28, height: 28, borderRadius: '50%', flex: 'none', background: G.brandGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', visibility: hideAvatar ? 'hidden' : 'visible', border: `1px solid ${G.brandTint}` }}>
+        <div style={{ width: 11, height: 11, borderRadius: '50%', background: G.brandDeep, boxShadow: `0 0 0 2px ${G.brandTint}` }} />
+      </div>
+      <div style={{ flex: 1 }}>{children}</div>
+    </div>
+  );
+}
+
+function AgentText({ children }) {
+  return (
+    <div style={{ maxWidth: '88%', padding: '11px 14px', background: G.surface, color: G.ink1, border: `1px solid ${G.strokeSoft}`, borderRadius: 20, borderBottomLeftRadius: 6, fontSize: 14.5, lineHeight: 1.5, fontWeight: 500 }}>{children}</div>
+  );
+}
+
+function CompareCard() {
+  const col = (label, time, dollars, co2, hi) => (
+    <div style={{ flex: 1, padding: '13px 14px', background: hi ? G.brandGlow : G.surface, borderRight: hi ? 'none' : `1px solid ${G.divider}` }}>
+      <Label tone={hi ? 'brand' : 'mute'}>{label}</Label>
+      <div style={{ fontSize: 11, color: G.ink3, marginTop: 4 }}>{time}</div>
+      <Display size={26} style={{ marginTop: 10 }}>{dollars}</Display>
+      <Mono style={{ fontSize: 11, color: G.ink3, marginTop: 4, display: 'block' }}>{co2}</Mono>
+    </div>
+  );
+  return (
+    <div style={{ marginTop: 8, maxWidth: '92%', borderRadius: 16, overflow: 'hidden', background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow }}>
+      <div style={{ display: 'flex' }}>
+        {col('NOW',       '3:45 PM today',  '$0.46', '0.18 kg CO₂', false)}
+        {col('BEST TIME', '11 AM tomorrow', '$0.12', '0.04 kg CO₂', true)}
+      </div>
+      <div style={{ borderTop: `1px solid ${G.divider}`, padding: '11px 14px', background: G.ink1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.75)', fontWeight: 500, flex: 1 }}>Waiting saves you</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 'none' }}>
+          <div style={{ fontFamily: G.sans, fontSize: 20, fontWeight: 600, color: '#fff', letterSpacing: '-0.025em' }}>$0.34</div>
+          <div style={{ fontFamily: G.mono, fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>· 0.14 kg CO₂</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScheduledCard() {
+  return (
+    <div style={{ maxWidth: '92%', marginTop: 4, borderRadius: 16, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden' }}>
+      <div style={{ padding: '10px 14px', background: G.brandGlow, display: 'flex', alignItems: 'center', gap: 8, borderBottom: `1px solid ${G.brandTint}` }}>
+        <div style={{ width: 18, height: 18, borderRadius: '50%', flex: 'none', background: G.brandDeep, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M 2 5 L 4 7 L 8 3" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </div>
+        <Label tone="brand">SCHEDULED</Label>
+      </div>
+      <div style={{ padding: '14px 14px' }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: G.ink1 }}>Run dishwasher</div>
+        <div style={{ fontSize: 13, color: G.ink2, marginTop: 4, fontWeight: 500 }}>Tomorrow · 11:00 AM</div>
+        <div style={{ fontSize: 12.5, color: G.ink3, marginTop: 8, lineHeight: 1.5 }}>I'll start it when solar is at peak output. You can cancel any time.</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: `1px solid ${G.divider}` }}>
+          <div style={{ fontSize: 12.5, color: G.ink3, fontWeight: 500 }}>You'll save</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <div style={{ fontFamily: G.sans, fontSize: 18, fontWeight: 600, color: G.brandAction, letterSpacing: '-0.025em' }}>$0.34</div>
+            <Mono style={{ fontSize: 10.5, color: G.ink3 }}>· 0.14 kg CO₂</Mono>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Chips({ items }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 14px 4px' }}>
+      {items.map(c => (
+        <div key={c} style={{ padding: '7px 12px', border: `1px solid ${G.divider}`, borderRadius: 999, background: G.surface, fontSize: 12.5, color: G.ink1, fontWeight: 500 }}>{c}</div>
+      ))}
+    </div>
+  );
+}
+
+function DayDivider({ children }) {
+  return (
+    <div style={{ textAlign: 'center', margin: '6px 0 14px' }}>
+      <span style={{ display: 'inline-block', padding: '4px 11px', borderRadius: 999, background: G.surfaceSoft, fontFamily: G.sans, fontSize: 10.5, color: G.ink3, fontWeight: 500, letterSpacing: '0.04em' }}>{children}</span>
+    </div>
+  );
+}
+
+function ChatScreen({ onBack, onAction, onTab }) {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: G.appBg, fontFamily: G.sans, color: G.ink1 }}>
+      <div style={{ paddingTop: 50 }} />
+      <ChatHeader onBack={onBack} />
+      <div style={{ flex: 1, overflow: 'auto', padding: '16px 14px 4px' }}>
+        <DayDivider>TODAY · 3:46 PM</DayDivider>
+        <UserBubble>When should I run my dishwasher?</UserBubble>
+        <AgentBubble>
+          <AgentText>Run it tomorrow morning around <strong>11 AM</strong> if you can wait. That's when your solar is at full tilt.</AgentText>
+        </AgentBubble>
+        <AgentBubble hideAvatar>
+          <CompareCard />
+        </AgentBubble>
+        <AgentBubble hideAvatar>
+          <AgentText>If you can't wait, kick it off after <strong>9 PM</strong> tonight — about <strong>$0.18</strong>. Anything from 4–9 PM costs the most.</AgentText>
+        </AgentBubble>
+      </div>
+      <div style={{ padding: '8px 14px 4px' }}>
+        <div onClick={onAction} style={{ padding: '13px 16px', borderRadius: 999, background: G.brandDeep, color: '#fff', fontWeight: 600, fontSize: 14.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 2 7 L 6 11 L 12 3" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Schedule it for 11 AM
+        </div>
+      </div>
+      <Chips items={['What about laundry?', 'Why is 11am cheapest?']} />
+      <ChatBar focused />
+      <TabBar active="chat" onTab={onTab} />
+    </div>
+  );
+}
+
+function ChatConfirmedScreen({ onBack, onTab }) {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: G.appBg, fontFamily: G.sans, color: G.ink1 }}>
+      <div style={{ paddingTop: 50 }} />
+      <ChatHeader onBack={onBack} />
+      <div style={{ flex: 1, overflow: 'auto', padding: '16px 14px 4px' }}>
+        <DayDivider>TODAY · 3:47 PM</DayDivider>
+        <UserBubble>When should I run my dishwasher?</UserBubble>
+        <AgentBubble>
+          <AgentText>Run it tomorrow around <strong>11 AM</strong> when solar is at full tilt. Saves about <strong>$0.34</strong> vs running it now.</AgentText>
+        </AgentBubble>
+        <UserBubble>Schedule it for 11 AM</UserBubble>
+        <AgentBubble>
+          <AgentText>Done. I'll start your dishwasher at <strong>11 AM tomorrow</strong>. I'll let you know when it kicks off.</AgentText>
+        </AgentBubble>
+        <AgentBubble hideAvatar><ScheduledCard /></AgentBubble>
+        <AgentBubble hideAvatar>
+          <AgentText>Want me to run the dishwasher mid-morning whenever solar's strong? I can add that as a rule.</AgentText>
+        </AgentBubble>
+      </div>
+      <Chips items={['Yes, add the rule', 'Just this once', 'Tell me when it starts']} />
+      <ChatBar />
+      <TabBar active="chat" onTab={onTab} />
+    </div>
+  );
+}
+
+// ─── History screen ───────────────────────────────────────────────────────────
+function HistoryScreen({ onTab }) {
+  const [filter, setFilter] = React.useState('All');
+  const filters = ['All', 'Solar', 'Battery', 'Thermostat', 'EV'];
+  const deviceKey = { Solar: 'solar', Battery: 'battery', Thermostat: 'thermostat', EV: 'ev' };
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: G.appBg, fontFamily: G.sans, color: G.ink1 }}>
+      <StatusBar />
+      <div style={{ padding: '4px 20px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ fontFamily: G.serif, fontSize: 30, fontWeight: 400, color: G.ink1, letterSpacing: '-0.015em' }}>History</div>
+          <div style={{ textAlign: 'right' }}>
+            <Label>LAST 30 DAYS</Label>
+            <div style={{ fontFamily: G.sans, fontSize: 16, fontWeight: 600, color: G.brandAction, marginTop: 3, letterSpacing: '-0.02em' }}>$84.20 saved</div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 5, marginTop: 12 }}>
+          {filters.map(f => (
+            <div key={f} onClick={() => setFilter(f)} style={{ padding: '7px 4px', borderRadius: 999, background: f === filter ? G.ink1 : G.surface, color: f === filter ? '#fff' : G.ink2, border: f === filter ? 'none' : `1px solid ${G.divider}`, fontFamily: G.sans, fontSize: 12, fontWeight: 600, cursor: 'pointer', textAlign: 'center', whiteSpace: 'nowrap' }}>{f}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ flex: 1, overflow: 'auto', borderTop: `1px solid ${G.divider}`, background: G.surface, marginTop: 10 }}>
+        {HISTORY.map(({ day, date, items, total }) => {
+          const filtered = filter === 'All' ? items : items.filter(it => it.device === deviceKey[filter]);
+          if (filtered.length === 0) return null;
+          return (
+            <React.Fragment key={day}>
+              <div style={{ padding: '14px 16px 10px', background: G.appBg, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: `1px solid ${G.divider}`, position: 'sticky', top: 0, zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <div style={{ fontFamily: G.serif, fontSize: 18, color: G.ink1, letterSpacing: '-0.01em' }}>{day}</div>
+                  {date && <Mono style={{ fontSize: 11, color: G.ink3 }}>{date}</Mono>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <Label>SAVED</Label>
+                  <div style={{ fontFamily: G.sans, fontSize: 15, fontWeight: 600, color: G.brandAction, letterSpacing: '-0.02em' }}>{total}</div>
+                </div>
+              </div>
+              {filtered.map((it, i) => {
+                const meta = DEVICE_META[it.device];
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 16px', borderBottom: `1px solid ${G.dividerSoft}`, background: G.surface }}>
+                    <div style={{ width: 52, flex: 'none', paddingTop: 2 }}>
+                      <Mono style={{ fontSize: 10.5, color: G.ink3, letterSpacing: 0.2, fontWeight: 500 }}>{it.time}</Mono>
+                    </div>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, flex: 'none', background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <GIcon kind={meta.icon} size={19} color={G.ink2} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13.5, color: G.ink1, lineHeight: 1.4, fontWeight: 500 }}>{it.action}</div>
+                      <div style={{ fontSize: 11, color: G.ink3, marginTop: 3, fontWeight: 500, letterSpacing: 0.03, textTransform: 'uppercase' }}>{meta.name}</div>
+                    </div>
+                    <div style={{ flex: 'none', alignSelf: 'flex-start', marginTop: 2 }}>
+                      {it.save
+                        ? <div style={{ padding: '4px 10px', borderRadius: 999, background: G.brandTint, color: G.brandDeep, fontFamily: G.sans, fontSize: 12, fontWeight: 600 }}>{it.impact}</div>
+                        : <div style={{ padding: '4px 10px', borderRadius: 999, background: G.surfaceSoft, color: G.ink3, fontFamily: G.sans, fontSize: 11, fontWeight: 500 }}>{it.impact}</div>
+                      }
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          );
+        })}
+        <div style={{ padding: '22px 16px 30px', textAlign: 'center', fontSize: 12, color: G.ink3 }}>Older actions are kept for 90 days.</div>
+      </div>
+      <TabBar active="history" onTab={onTab} />
+    </div>
+  );
+}
+
+// ─── Profile / Settings screen ────────────────────────────────────────────────
+function ToggleSwitch({ on }) {
+  return (
+    <div style={{ width: 44, height: 26, borderRadius: 999, background: on ? G.brandAction : G.ink4, position: 'relative', flex: 'none', transition: 'background 0.2s' }}>
+      <div style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'left 0.2s' }} />
+    </div>
+  );
+}
+
+function SettingsRow({ label, value, sub, trailing, topBorder }) {
+  return (
+    <div style={{ padding: '13px 16px', borderTop: topBorder ? `1px solid ${G.dividerSoft}` : 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontWeight: 500, color: G.ink1, lineHeight: 1.3 }}>{label}</div>
+        {sub && <div style={{ fontSize: 12, color: G.ink3, marginTop: 2 }}>{sub}</div>}
+      </div>
+      {value && <div style={{ fontSize: 13.5, color: G.ink3, fontWeight: 500, flex: 'none' }}>{value}</div>}
+      {trailing}
+      {!trailing && !value && <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 5 2 L 10 7 L 5 12" fill="none" stroke={G.ink4} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+    </div>
+  );
+}
+
+function ProfileScreen({ onTab }) {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: G.appBg, fontFamily: G.sans, color: G.ink1 }}>
+      <StatusBar />
+
+      <div style={{ flex: 1, overflow: 'auto', padding: '4px 20px 24px' }}>
+
+        {/* Profile header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0 20px' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: G.brandTint, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none', border: `2px solid ${G.brandGlow}` }}>
+            <span style={{ fontFamily: G.sans, fontWeight: 600, fontSize: 20, color: G.brandDeep }}>S</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: G.serif, fontSize: 22, fontWeight: 400, color: G.ink1, letterSpacing: '-0.01em', lineHeight: 1.1 }}>Sarah</div>
+            <div style={{ fontSize: 13, color: G.ink3, marginTop: 3, fontWeight: 500 }}>123 Maple St · San Francisco</div>
+          </div>
+          <div style={{ padding: '7px 14px', borderRadius: 999, border: `1px solid ${G.divider}`, background: G.surface, fontSize: 13, fontWeight: 600, color: G.ink2, cursor: 'pointer', flex: 'none' }}>Edit</div>
+        </div>
+
+        {/* Utility */}
+        <Label style={{ padding: '0 2px', marginBottom: 8 }}>MY UTILITY</Label>
+        <div style={{ borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden', marginBottom: 22 }}>
+          <SettingsRow label="Utility provider" value="PG&E" />
+          <SettingsRow label="Peak pricing window" value="4–9 PM daily" topBorder />
+          <SettingsRow label="Rate plan" value="E-TOU-C" topBorder />
+          <SettingsRow label="Export / net metering" value="NEM 3.0" topBorder />
+        </div>
+
+        {/* Connected devices */}
+        <Label style={{ padding: '0 2px', marginBottom: 8 }}>MY DEVICES</Label>
+        <div style={{ borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden', marginBottom: 22 }}>
+          {[
+            { device: 'solar',      label: 'Solar panels',  sub: 'Enphase IQ8 · Connected', on: true  },
+            { device: 'battery',    label: 'Home battery',  sub: 'Tesla Powerwall 2 · Connected', on: true  },
+            { device: 'thermostat', label: 'Thermostat',    sub: 'Nest Learning · Connected', on: true  },
+            { device: 'ev',         label: 'EV charger',    sub: 'ChargePoint Home Flex · Connected', on: true  },
+          ].map(({ device, label, sub, on }, i) => (
+            <div key={device} style={{ padding: '12px 16px', borderTop: i > 0 ? `1px solid ${G.dividerSoft}` : 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, flex: 'none', background: G.brandTint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <GIcon kind={DEVICE_META[device].icon} size={20} color={G.brandDeep} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: G.ink1 }}>{label}</div>
+                <div style={{ fontSize: 12, color: G.ink3, marginTop: 1 }}>{sub}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Dot color="green" size={6} />
+                <svg width="14" height="14" viewBox="0 0 14 14"><path d="M 5 2 L 10 7 L 5 12" fill="none" stroke={G.ink4} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </div>
+            </div>
+          ))}
+          <div style={{ padding: '11px 16px', borderTop: `1px solid ${G.dividerSoft}`, background: G.surfaceSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: G.ink2, fontSize: 13, fontWeight: 600 }}>
+            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M 6 1.5 L 6 10.5 M 1.5 6 L 10.5 6" stroke={G.ink2} strokeWidth="1.7" strokeLinecap="round" /></svg>
+            Add a device
+          </div>
+        </div>
+
+        {/* Optimization */}
+        <Label style={{ padding: '0 2px', marginBottom: 8 }}>OPTIMIZATION</Label>
+        <div style={{ borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden', marginBottom: 22 }}>
+          <SettingsRow
+            label="Prioritize savings"
+            sub="Agent squeezes every cent, may adjust comfort slightly"
+            trailing={<ToggleSwitch on={false} />}
+          />
+          <SettingsRow
+            label="Comfort first"
+            sub="Savings within your comfort rules — no trade-offs"
+            topBorder
+            trailing={<ToggleSwitch on={true} />}
+          />
+          <SettingsRow
+            label="Backup reserve"
+            value="20%"
+            sub="Battery minimum for outages"
+            topBorder
+          />
+        </div>
+
+        {/* Notifications */}
+        <Label style={{ padding: '0 2px', marginBottom: 8 }}>NOTIFICATIONS</Label>
+        <div style={{ borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden', marginBottom: 22 }}>
+          <SettingsRow label="Morning summary" sub="Daily recap of what the agent did" trailing={<ToggleSwitch on={true} />} />
+          <SettingsRow label="Agent actions" sub="Notify when something changes" topBorder trailing={<ToggleSwitch on={false} />} />
+          <SettingsRow label="Unusual activity" sub="Spikes or unexpected usage" topBorder trailing={<ToggleSwitch on={true} />} />
+        </div>
+
+        {/* Account */}
+        <Label style={{ padding: '0 2px', marginBottom: 8 }}>ACCOUNT</Label>
+        <div style={{ borderRadius: 14, background: G.surface, border: `1px solid ${G.strokeSoft}`, boxShadow: G.shadow, overflow: 'hidden' }}>
+          <SettingsRow label="sarah@example.com" />
+          <SettingsRow label="Subscription" value="Pro" topBorder />
+          <SettingsRow label="Privacy & data" topBorder />
+          <SettingsRow label="Sign out" topBorder trailing={<span style={{ fontSize: 13.5, color: '#C0392B', fontWeight: 500 }}>Sign out</span>} />
+        </div>
+
+      </div>
+      {onTab && <TabBar active="profile" onTab={onTab} />}
+    </div>
+  );
+}
+
+// ─── Interactive prototype ─────────────────────────────────────────────────────
+function Prototype({ scenario, heroMode }) {
+  const [screen, setScreen] = React.useState('home');
+  const [chatStep, setChatStep] = React.useState('question');
+  const [key, setKey] = React.useState(0);
+
+  const goTo = (s, extra) => {
+    setScreen(s);
+    if (extra) setChatStep(extra);
+    setKey(k => k + 1);
+  };
+
+  const goTab = id => {
+    if (id === 'chat') { goTo('chat', 'question'); return; }
+    goTo(id);
+  };
+
+  let content;
+  if (screen === 'home') content = <HomeScreen scenario={scenario} heroMode={heroMode} onChatTap={() => goTo('chat', 'question')} onTab={goTab} />;
+  else if (screen === 'chat') content = chatStep === 'confirmed'
+    ? <ChatConfirmedScreen onBack={() => goTo('home')} onTab={goTab} />
+    : <ChatScreen onBack={() => goTo('home')} onAction={() => { setChatStep('confirmed'); setKey(k=>k+1); }} onTab={goTab} />;
+  else if (screen === 'history') content = <HistoryScreen onTab={goTab} />;
+  else if (screen === 'profile') content = <ProfileScreen onTab={goTab} />;
+
+  return <div key={key} className="screen-enter" style={{ height: '100%', width: '100%' }}>{content}</div>;
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+function App() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+      <div className="phone-shell">
+        <div className="phone-notch" />
+        <div className="phone-screen">
+          <Prototype scenario="pre-peak" heroMode="dollars" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
