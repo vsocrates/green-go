@@ -27,7 +27,7 @@ The system monitors connected smart devices and applies machine learning algorit
 
 The intuitive dashboard provides real-time insights into your energy consumption, device status, and optimization recommendations.
 
-[View Interactive Mockup](https://html-preview.github.io/?url=https://github.com/vsocrates/green-go/blob/main/green-go-demo.html)
+[View Interactive Mockup](https://rawcdn.githack.com/vsocrates/green-go/fdc3446cbcea2784e2044a4106f06b598a30bbad/green-go-demo.html)
 
 ## Getting Started
 
