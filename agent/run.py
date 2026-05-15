@@ -11,7 +11,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
+
+# Allow `python agent/run.py` in addition to `python -m agent.run`
+if not __package__:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agent.agent import run_agent
 from agent.dummy_data import make_dummy_bundle
