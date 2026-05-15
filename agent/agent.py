@@ -52,7 +52,7 @@ def _get_agent() -> Agent[None, ActionPlan]:
         model = AnthropicModel(os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6"))
         _energy_agent = Agent(
             model=model,
-            result_type=ActionPlan,
+            output_type=ActionPlan,
             system_prompt=SYSTEM_PROMPT,
         )
     return _energy_agent
@@ -66,11 +66,11 @@ async def run_agent(bundle: ObservationBundle) -> ActionPlan:
     """Run the energy management agent on a bundle and return the ActionPlan."""
     bundle_json = bundle.model_dump_json(indent=2)
     result = await _get_agent().run(bundle_json)
-    return result.data
+    return result.output
 
 
 def run_agent_sync(bundle: ObservationBundle) -> ActionPlan:
     """Synchronous wrapper around run_agent."""
     bundle_json = bundle.model_dump_json(indent=2)
     result = _get_agent().run_sync(bundle_json)
-    return result.data
+    return result.output
